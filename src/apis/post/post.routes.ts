@@ -7,11 +7,13 @@ import multerMiddleware from "../../middlewares/multer.middleware";
 
 // controller
 import postGetController from "./controllers/post.get.controller";
+import postGet_mineController from "./controllers/post.get_mine.controller";
 import postGet_comment_count_and_is_likedController from "./controllers/post.get_comment_count_and_is_liked.controller";
 import postCreateController from "./controllers/post.create.controller";
 import postLike_actionController from "./controllers/post.like_action.controller";
 import postAdd_commentController from "./controllers/post.add_comment.controller";
 import postGet_commentController from "./controllers/post.get_comment.controller";
+import postDeleteController from "./controllers/post.delete.controller";
 
 const router: express.Router = express.Router();
 
@@ -22,6 +24,17 @@ router.get(
     validatorResult({ req, res, next }),
   async (req: express.Request, res: express.Response) =>
     await postGetController.controller({ req, res })
+);
+
+router.get(
+  "/mine",
+  (req: express.Request, res: express.Response, next: express.NextFunction) =>
+    ensureAuthorized({ req, res, next }),
+  postGet_mineController.validator(),
+  (req: express.Request, res: express.Response, next: express.NextFunction) =>
+    validatorResult({ req, res, next }),
+  async (req: express.Request, res: express.Response) =>
+    await postGet_mineController.controller({ req, res })
 );
 
 router.get(
@@ -82,6 +95,17 @@ router.post(
     validatorResult({ req, res, next }),
   async (req: express.Request, res: express.Response) =>
     await postCreateController.controller({ req, res })
+);
+
+router.delete(
+  "/delete/:postId",
+  (req: express.Request, res: express.Response, next: express.NextFunction) =>
+    ensureAuthorized({ req, res, next }),
+  postDeleteController.validator(),
+  (req: express.Request, res: express.Response, next: express.NextFunction) =>
+    validatorResult({ req, res, next }),
+  async (req: express.Request, res: express.Response) =>
+    await postDeleteController.controller({ req, res })
 );
 
 export default router;

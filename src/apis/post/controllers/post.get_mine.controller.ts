@@ -1,29 +1,19 @@
 import { ReqRes } from "express.type";
-import { ValidationChain, body, query } from "express-validator";
+import { ValidationChain } from "express-validator";
 import { handleAxiosError } from "../../../helpers/axios.helper";
-import {
-  authWithPassword,
-  useAdminToken,
-} from "../../../providers/pocketbase/auth.pb";
-import { pbCol } from "../../../providers/axios.provider";
-import { IPost } from "post.type";
 import { authAsAdmin } from "../../../providers/pocketbase/pocket.pb";
-import qs from "qs";
-import url from "url";
+import { getMetadaByAuth } from "../../../providers/pocketbase/auth.pb";
 
 const controller = async ({ req, res }: ReqRes) => {
   try {
+    const auth = req.headers.authorization;
+
+    const metadata = await getMetadaByAuth(auth);
+
     const pb = await authAsAdmin();
-    const query = qs.parse(url.parse(req.url).query);
 
     const data = await pb.collection("posts").getList(1, 500, {
-      filter: `is_private=false${
-        query?.search !== undefined ? `&&caption~"${query.search}"` : ""
-      }${
-        query?.created_by !== undefined
-          ? `&&created_by="${query.created_by}"`
-          : ""
-      }`,
+      filter: `created_by="${metadata.id}"`,
       expand: "created_by",
       sort: "-created",
     });
@@ -49,7 +39,7 @@ const controller = async ({ req, res }: ReqRes) => {
 };
 
 const validator = (): ValidationChain[] => {
-  return [query("search").isString().optional(true)];
+  return [];
 };
 
 export default {
